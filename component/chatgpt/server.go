@@ -73,6 +73,7 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 		}
 		s.ConvMap[convAddr].ID = rsp.ConversationID
 		s.ConvMap[convAddr].LastMessageID = rsp.MessageID
+		s.ConvMap[convAddr].LastAskTime = time.Now()
 		return &rsp.Message, convAddr
 	}
 
