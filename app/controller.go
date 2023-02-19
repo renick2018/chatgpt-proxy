@@ -5,6 +5,7 @@ import (
 	"chatgpt-proxy/component/chatgpt"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"net/url"
 )
 
@@ -23,10 +24,13 @@ func ask(c *gin.Context) {
 	if rsp != nil {
 		data["response"] = *rsp
 		data["conversationId"] = conv
+		data["text"] = *rsp
+		data["ParentMessageId"] = ""
 	} else {
 		msg = "no available server"
 	}
-	component.Response(c, 0, msg, data)
+	c.JSON(http.StatusOK, gin.H{"code": 0, "error": msg, "response": data})
+	//component.Response(c, 0, msg, data)
 }
 
 func restart(c *gin.Context) {

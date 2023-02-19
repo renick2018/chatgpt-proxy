@@ -23,17 +23,16 @@ type Server struct {
 
 func (s *Server) updateCount(plus bool) {
 	s.countLock.Lock()
+	defer s.countLock.Unlock()
 	if plus {
 		s.Asking++
 		s.count++
 	} else {
 		s.Asking--
 	}
-	s.countLock.Unlock()
 }
 
 func (s *Server) NewConv(nickname string) {
-	s.updateCount(true)
 	if nickname == "" {
 		return
 	}
@@ -47,6 +46,7 @@ func (s *Server) NewConv(nickname string) {
 }
 
 func (s *Server) Ask(convId, message string) (*string, string) {
+	s.updateCount(true)
 	s.Lock()
 	defer func() {
 		s.updateCount(false)

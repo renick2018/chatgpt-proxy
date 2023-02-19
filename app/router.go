@@ -32,4 +32,5 @@ func Routers(e *gin.Engine) {
 		v.POST("/add_server", newServer)
 		v.GET("/servers", serverList)
 	}
+	e.POST("/ask", ask)
 }

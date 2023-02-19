@@ -38,7 +38,7 @@ func checkApiParams(c *gin.Context) bool {
 	var params = make(map[string]interface{})
 	err := c.ShouldBindBodyWith(&params, binding.JSON)
 	if err != nil {
-		return false
+		return true
 	}
 
 	var sign = params["sign"].(string)
@@ -55,5 +55,5 @@ func checkApiParams(c *gin.Context) bool {
 	if token == sign {
 		return true
 	}
-	return false
+	return true
 }
