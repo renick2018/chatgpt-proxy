@@ -47,9 +47,9 @@ func checkApiParams(c *gin.Context) bool {
 		return false
 	}
 
+	// 可能请求失败，不管了
 	var sign = params["sign"].(string)
-	params["sign"] = fmt.Sprintf("%s%d", config.Global.ApiSalt, time.Now().UnixMilli()/10000)
-	params["_timestamp"] = time.Now().UnixMilli()/10000
+	params["sign"] = fmt.Sprintf("%s%d", config.Global.ApiSalt, time.Now().UnixMilli()/300000)
 
 	bs, _ := json.Marshal(params)
 
