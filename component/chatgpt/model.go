@@ -7,7 +7,6 @@ type Conversation struct {
 	Nickname      string // client request id
 	LastMessageID string
 	LastAskTime   time.Time
-	WaitCount     int
 	Server        *Server
 }
 

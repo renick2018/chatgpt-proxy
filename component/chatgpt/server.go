@@ -21,6 +21,17 @@ type Server struct {
 	countLock    sync.Mutex
 }
 
+func (s *Server) Workload() float32 {
+	var activeConv = 0
+	for _, v := range s.ConvMap{
+		if time.Now().UnixMilli() - v.LastAskTime.UnixMilli() < 120000 {
+			activeConv++
+		}
+	}
+
+	return float32(s.Asking) + 0.5 * float32(activeConv) + 1 - 1.0/float32(s.count + 1)
+}
+
 func (s *Server) updateCount(plus bool) {
 	s.countLock.Lock()
 	defer s.countLock.Unlock()
@@ -148,5 +159,6 @@ func (s *Server) Info() map[string]interface{} {
 		"asking":             s.Asking,
 		"count":              s.count,
 		"success_count":      s.successCount,
+		"workload":           s.Workload(),
 	}
 }

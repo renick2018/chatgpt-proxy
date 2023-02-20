@@ -81,7 +81,7 @@ func fetchSever(nickname string) (s *Server) {
 		if v.ConvMap[nickname] != nil {
 			cached = v
 		}
-		if freest == nil || freest.Asking > v.Asking {
+		if freest == nil || freest.Workload() > v.Workload() {
 			freest = v
 		}
 	}
