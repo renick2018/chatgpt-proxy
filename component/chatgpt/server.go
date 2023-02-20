@@ -11,13 +11,13 @@ import (
 )
 
 type Server struct {
-	sync.Mutex
 	Status       bool
 	Host         string
 	ConvMap      map[string]*Conversation // [nickname]
 	Asking       int
 	count        int
 	successCount int
+	askLock      sync.Mutex
 	countLock    sync.Mutex
 }
 
@@ -58,10 +58,10 @@ func (s *Server) NewConv(nickname string) {
 
 func (s *Server) Ask(convId, message string) (*string, string) {
 	s.updateCount(true)
-	s.Lock()
+	s.askLock.Lock()
 	defer func() {
 		s.updateCount(false)
-		s.Unlock()
+		s.askLock.Unlock()
 	}()
 
 	if !s.Status {
