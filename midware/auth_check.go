@@ -2,6 +2,7 @@ package midware
 
 import (
 	"chatgpt-proxy/config"
+	"chatgpt-proxy/lib/logger"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -14,7 +15,7 @@ import (
 )
 
 // todo fix clint
-var whiteList []string = []string{"chatgpt"}
+var whiteList []string = []string{""}
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -35,14 +36,20 @@ func Auth() gin.HandlerFunc {
 }
 
 func checkApiParams(c *gin.Context) bool {
+	if c.Request.Method != "POST" {
+		logger.Warning("auth parse err: api only support post request")
+		return false
+	}
 	var params = make(map[string]interface{})
 	err := c.ShouldBindBodyWith(&params, binding.JSON)
 	if err != nil {
-		return true
+		logger.Info(fmt.Sprintf("auth parse err: %+v", err))
+		return false
 	}
 
 	var sign = params["sign"].(string)
-	params["sign"] = fmt.Sprintf("%s%d", config.Global.ApiSalt, time.Now().UnixMilli()/300000)
+	params["sign"] = fmt.Sprintf("%s%d", config.Global.ApiSalt, time.Now().UnixMilli()/10000)
+	params["_timestamp"] = time.Now().UnixMilli()/10000
 
 	bs, _ := json.Marshal(params)
 
@@ -52,8 +59,10 @@ func checkApiParams(c *gin.Context) bool {
 	// 将二进制 MD5 值转换为十六进制字符串
 	token := hex.EncodeToString(hash[:])
 
+	logger.Info(fmt.Sprintf("auth sign: %s, token:%s", sign, token))
+
 	if token == sign {
 		return true
 	}
-	return true
+	return false
 }

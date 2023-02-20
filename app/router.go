@@ -30,7 +30,7 @@ func Routers(e *gin.Engine) {
 		v.POST("/ask", ask)
 		v.POST("/restart", restart)
 		v.POST("/add_server", newServer)
-		v.GET("/servers", serverList)
+		v.POST("/servers", serverList)
 	}
 	e.POST("/ask", ask)
 }

@@ -10,14 +10,14 @@ import (
 )
 
 func ask(c *gin.Context) {
-	var params map[string]string
+	var params map[string]interface{}
 	component.ParsePostMap(c, &params)
 	if params == nil {
 		return
 	}
 
-	var message = params["message"]
-	var nickname = params["conversationId"]
+	var message = params["message"].(string)
+	var nickname = params["conversationId"].(string)
 	var rsp, conv = chatgpt.Ask(nickname, message)
 	var data = make(map[string]string)
 	var msg = ""
@@ -34,12 +34,12 @@ func ask(c *gin.Context) {
 }
 
 func restart(c *gin.Context) {
-	var params map[string]string
+	var params map[string]interface{}
 	component.ParsePostMap(c, &params)
 	if params == nil {
 		return
 	}
-	var host = params["host"]
+	var host = params["host"].(string)
 	if _, err := url.ParseRequestURI(host); err != nil {
 		component.Response(c, 1, fmt.Sprintf("%s is not a host", host))
 		return
@@ -52,12 +52,12 @@ func restart(c *gin.Context) {
 }
 
 func newServer(c *gin.Context) {
-	var params map[string]string
+	var params map[string]interface{}
 	component.ParsePostMap(c, &params)
 	if params == nil {
 		return
 	}
-	var host = params["host"]
+	var host = params["host"].(string)
 	if _, err := url.ParseRequestURI(host); err != nil {
 		component.Response(c, 1, fmt.Sprintf("%s is not a host", host))
 		return

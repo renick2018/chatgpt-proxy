@@ -1,0 +1,3 @@
+ApiSalt: 123456
+ChatServerAddrs:
+  - http://localhost:8080
