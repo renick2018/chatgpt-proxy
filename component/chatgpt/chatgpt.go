@@ -12,6 +12,7 @@ import (
 
 var locker sync.Mutex
 var ServerMap = make(map[string]*Server)
+var alertTimestamp int64 = 0
 
 func LoadServers() {
 	for _, host := range config.Global.ChatServerAddrs {
@@ -94,8 +95,12 @@ func fetchSever(nickname string) (s *Server) {
 }
 
 func serverOffline(server *Server) {
-	var text = fmt.Sprintf("chatgpt server %s is offline, check it!", server.Host)
+	var text = fmt.Sprintf("chatgpt server %s is offline, check it! %+v", server.Host, time.UnixMilli(alertTimestamp).Format("2006-01-02 15:04:05"))
 	logger.Warning(text)
+	if time.Now().UnixMilli() - alertTimestamp < 60000 {
+		return
+	}
+	alertTimestamp = time.Now().UnixMilli()
 	var alive = 0
 	for _, v := range ServerMap{
 		if v.Status {
