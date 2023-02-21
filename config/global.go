@@ -10,6 +10,13 @@ import "gopkg.in/yaml.v2"
 var Global struct {
 	ApiSalt         string   `yaml:"ApiSalt"`
 	ChatServerAddrs []string `yaml:"ChatServerAddrs"`
+	Emails          []string `yaml:"Emails"`
+	EmailServer     struct {
+		Sender   string `yaml:"sender"`
+		Password string `yaml:"password"`
+		Host     string `yaml:"host"`
+		Port     int    `yaml:"port"`
+	} `yaml:"EmailServer"`
 }
 
 func init() {

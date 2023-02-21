@@ -1,6 +1,7 @@
 package chatgpt
 
 import (
+	"chatgpt-proxy/component/email"
 	"chatgpt-proxy/config"
 	"chatgpt-proxy/lib/logger"
 	"fmt"
@@ -95,7 +96,18 @@ func fetchSever(nickname string) (s *Server) {
 func serverOffline(server *Server) {
 	var text = fmt.Sprintf("chatgpt server %s is offline, check it!", server.Host)
 	logger.Warning(text)
-	// 企业微信/飞书
+	var alive = 0
+	for _, v := range ServerMap{
+		if v.Status {
+			alive++
+		}
+	}
+	// 企业微信/飞书/邮箱
+	for _, to := range config.Global.Emails{
+		email.Send(to,
+			fmt.Sprintf("ChatGPT %s offline", strings.SplitAfter(server.Host, ":")[2]),
+			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline <br> while <strong> %d </strong> asking <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, alive, len(ServerMap) - alive, server.Asking))
+	}
 }
 
 func RestartServer(host string) int {

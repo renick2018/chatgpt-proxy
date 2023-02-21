@@ -29,7 +29,7 @@ func (s *Server) Workload() float32 {
 		}
 	}
 
-	return float32(s.Asking) + 0.5 * float32(activeConv) + 1 - 1.0/float32(s.count + 1)
+	return float32(s.Asking) + 0.5 * float32(activeConv) + 1 - 1.0/float32((s.count + s.successCount)/2 + 1)
 }
 
 func (s *Server) updateCount(plus bool) {
