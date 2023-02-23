@@ -67,7 +67,7 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 	if !s.Status {
 		return nil, convId
 	}
-	logger.Info(fmt.Sprintf("%s %s try ask %s", s.Host, convId, message))
+	logger.Info(fmt.Sprintf("%s %s try ask %d letter: %s", s.Host, convId, len([]rune(message)), message))
 
 	// post for rsp
 	var rsp = s.post(convId, message)
@@ -127,7 +127,6 @@ func (s *Server) post(convId, message string) *Response {
 
 	defer resp.Body.Close()
 
-	fmt.Println()
 	logger.Info(fmt.Sprintf("HTTP Response Status: %+v", resp.Status))
 
 	// 读取响应体
@@ -139,6 +138,7 @@ func (s *Server) post(convId, message string) *Response {
 	json.Unmarshal(buf.Bytes(), &rsp)
 
 	if rsp["response"] == nil {
+		logger.Warning(fmt.Sprintf("rsp err: %+v", rsp["message"]))
 		return nil
 	}
 

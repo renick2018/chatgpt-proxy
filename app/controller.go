@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 func ask(c *gin.Context) {
@@ -18,7 +19,7 @@ func ask(c *gin.Context) {
 
 	var message = params["message"].(string)
 	var nickname = params["conversationId"].(string)
-	var rsp, conv = chatgpt.Ask(nickname, message)
+	var rsp, conv = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""))
 	var data = make(map[string]string)
 	var msg = ""
 	if rsp != nil {
