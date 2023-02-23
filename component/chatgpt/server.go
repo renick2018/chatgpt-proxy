@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -138,7 +139,15 @@ func (s *Server) post(convId, message string) *Response {
 	json.Unmarshal(buf.Bytes(), &rsp)
 
 	if rsp["response"] == nil {
-		logger.Warning(fmt.Sprintf("rsp err: %+v", rsp["message"]))
+		var msg = rsp["message"].(string)
+		logger.Warning(fmt.Sprintf("rsp err: %s", msg))
+		if strings.Contains(msg, "error 500") {
+			return &Response{
+				Message:        "阿巴阿巴",
+				ConversationID: convId,
+			}
+		}
+
 		return nil
 	}
 
