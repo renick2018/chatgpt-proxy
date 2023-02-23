@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -20,17 +19,19 @@ type Server struct {
 	successCount int
 	askLock      sync.Mutex
 	countLock    sync.Mutex
+	Code         int
+	OffTimestamp time.Time
 }
 
 func (s *Server) Workload() float32 {
 	var activeConv = 0
-	for _, v := range s.ConvMap{
-		if time.Now().UnixMilli() - v.LastAskTime.UnixMilli() < 120000 {
+	for _, v := range s.ConvMap {
+		if time.Now().UnixMilli()-v.LastAskTime.UnixMilli() < 120000 {
 			activeConv++
 		}
 	}
 
-	return float32(s.Asking) + 0.5 * float32(activeConv) + 1 - 1.0/float32((s.count + s.successCount)/2 + 1)
+	return float32(s.Asking) + 0.5*float32(activeConv) + 1 - 1.0/float32((s.count+s.successCount)/2+1)
 }
 
 func (s *Server) updateCount(plus bool) {
@@ -89,8 +90,6 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 		return &rsp.Message, convAddr
 	}
 
-	s.Status = false
-
 	// return nil, false
 	return nil, ""
 }
@@ -139,16 +138,25 @@ func (s *Server) post(convId, message string) *Response {
 	json.Unmarshal(buf.Bytes(), &rsp)
 
 	if rsp["response"] == nil {
-		var msg = rsp["message"].(string)
-		logger.Warning(fmt.Sprintf("rsp err: %s", msg))
-		if strings.Contains(msg, "error 500") {
-			return &Response{
-				Message:        "阿巴阿巴",
-				ConversationID: convId,
-			}
+		var msg = rsp["message"].(map[string]interface{})
+		var text = "阿巴阿巴"
+		var code = int(msg["statusCode"].(float64))
+		switch code {
+		case 413:
+			text = fmt.Sprintf("太长了，简短的问哈，脑阔已经打包了")
+		case 500:
+			text = fmt.Sprintf("这个问题太难了，换一个吧，脑瓜子嗡嗡嗡的")
+		default:
+			s.Code = code
+			s.OffTimestamp = time.Now()
+			s.Status = false
+			return nil
 		}
 
-		return nil
+		return &Response{
+			Message:        text,
+			ConversationID: convId,
+		}
 	}
 
 	var response = rsp["response"].(map[string]interface{})
@@ -169,5 +177,7 @@ func (s *Server) Info() map[string]interface{} {
 		"count":              s.count,
 		"success_count":      s.successCount,
 		"workload":           s.Workload(),
+		"code":               s.Code,
+		"off_timestamp":      s.OffTimestamp.Format("2006-01-02 15:04:05"),
 	}
 }
