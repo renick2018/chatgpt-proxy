@@ -90,6 +90,8 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 		return &rsp.Message, convAddr
 	}
 
+	s.OffTimestamp = time.Now()
+	s.Status = false
 	// return nil, false
 	return nil, ""
 }
@@ -148,8 +150,6 @@ func (s *Server) post(convId, message string) *Response {
 			text = fmt.Sprintf("这个问题太难了，换一个吧，脑瓜子嗡嗡嗡的")
 		default:
 			s.Code = code
-			s.OffTimestamp = time.Now()
-			s.Status = false
 			return nil
 		}
 
