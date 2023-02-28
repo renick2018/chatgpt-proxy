@@ -80,7 +80,7 @@ func fetchSever(nickname string) (s *Server) {
 		if !v.Status {
 			continue
 		}
-		if v.ConvMap[nickname] != nil {
+		if v.ConvMap[nickname] != nil && (cached == nil || v.Workload() < cached.Workload()){
 			cached = v
 		}
 		if freest == nil || freest.Workload() > v.Workload() {
@@ -88,10 +88,11 @@ func fetchSever(nickname string) (s *Server) {
 		}
 	}
 
-	if cached == nil || !cached.Status || (cached.Asking > 5 && time.Now().UnixMilli()-cached.ConvMap[nickname].LastAskTime.UnixMilli() > 600000) {
-		return freest
+	if cached != nil && (cached.Asking < 5 || time.Now().UnixMilli()-cached.ConvMap[nickname].LastAskTime.UnixMilli() < 300000){
+		return cached
 	}
-	return cached
+
+	return freest
 }
 
 func serverOffline(server *Server) {
@@ -111,7 +112,7 @@ func serverOffline(server *Server) {
 	for _, to := range config.Global.Emails{
 		email.Send(to,
 			fmt.Sprintf("ChatGPT %s offline", strings.SplitAfter(server.Host, ":")[2]),
-			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline <br> while <strong> %d </strong> asking <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, alive, server.Asking, len(ServerMap) - alive))
+			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline <br> while <strong> %d </strong> asking <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, server.Asking, alive, len(ServerMap) - alive))
 	}
 }
 

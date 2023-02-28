@@ -11,16 +11,17 @@ import (
 )
 
 type Server struct {
-	Status       bool
-	Host         string
-	ConvMap      map[string]*Conversation // [nickname]
-	Asking       int
-	count        int
-	successCount int
-	askLock      sync.Mutex
-	countLock    sync.Mutex
-	Code         int
-	OffTimestamp time.Time
+	Status          bool
+	Host            string
+	ConvMap         map[string]*Conversation // [nickname]
+	Asking          int
+	count           int
+	successCount    int
+	askLock         sync.Mutex
+	countLock       sync.Mutex
+	Code            int
+	OffTimestamp    time.Time
+	AskingTimestamp time.Time
 }
 
 func (s *Server) Workload() float32 {
@@ -69,6 +70,7 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 	if !s.Status {
 		return nil, convId
 	}
+	s.AskingTimestamp = time.Now()
 	logger.Info(fmt.Sprintf("%s %s try ask %d letter: %s", s.Host, convId, len([]rune(message)), message))
 
 	// post for rsp
@@ -179,5 +181,6 @@ func (s *Server) Info() map[string]interface{} {
 		"workload":           s.Workload(),
 		"code":               s.Code,
 		"off_timestamp":      s.OffTimestamp.Format("2006-01-02 15:04:05"),
+		"asking_timestamp":      s.AskingTimestamp.Format("2006-01-02 15:04:05"),
 	}
 }
