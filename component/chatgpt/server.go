@@ -122,7 +122,7 @@ func (s *Server) post(convId, message string) *Response {
 
 	req.Header.Set("Content-Type", "application/json") // 设置请求头
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Do(req) // 发送请求
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Error sending HTTP request: %+v", err))
