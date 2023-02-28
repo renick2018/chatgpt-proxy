@@ -41,10 +41,10 @@ func restart(c *gin.Context) {
 		return
 	}
 	var host = params["host"].(string)
-	if _, err := url.ParseRequestURI(host); err != nil {
-		component.Response(c, 1, fmt.Sprintf("%s is not a host", host))
-		return
-	}
+	//if _, err := url.ParseRequestURI(host); err != nil {
+	//	component.Response(c, 1, fmt.Sprintf("%s is not a host", host))
+	//	return
+	//}
 	var count = 0
 	if host != "" {
 		count = chatgpt.RestartServer(host)
@@ -63,8 +63,10 @@ func newServer(c *gin.Context) {
 		component.Response(c, 1, fmt.Sprintf("%s is not a host", host))
 		return
 	}
+	var email = params["email"].(string)
+	var password = params["password"].(string)
 	var msg = ""
-	if chatgpt.AddServer(host) {
+	if chatgpt.AddServer(host, email, password) {
 		msg = fmt.Sprintf("%s seems running.", host)
 	}
 	component.Response(c, 0, msg)

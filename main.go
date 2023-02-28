@@ -8,6 +8,7 @@ import (
 
 func main() {
 	chatgpt.LoadServers()
+	chatgpt.LoadServersV2()
 	// 加载多个APP的路由配置
 	app.Include(app.Routers)
 	// 初始化路由

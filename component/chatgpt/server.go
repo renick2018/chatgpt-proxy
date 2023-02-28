@@ -22,6 +22,8 @@ type Server struct {
 	Code            int
 	OffTimestamp    time.Time
 	AskingTimestamp time.Time
+	Email           string
+	Password        string
 }
 
 func (s *Server) Workload() float32 {
@@ -103,6 +105,7 @@ func (s *Server) post(convId, message string) *Response {
 	url := s.Host + "/ask" // POST 请求的目标 URL
 	data := make(map[string]interface{})
 	data["message"] = message
+	data["node"] = s.Email
 	if s.ConvMap[convId] != nil {
 		data["messageId"] = s.ConvMap[convId].LastMessageID
 		data["conversationId"] = s.ConvMap[convId].ID
@@ -141,10 +144,22 @@ func (s *Server) post(convId, message string) *Response {
 	var rsp = make(map[string]interface{})
 	json.Unmarshal(buf.Bytes(), &rsp)
 
-	if rsp["response"] == nil {
-		var msg = rsp["message"].(map[string]interface{})
+	var res = rsp["response"]
+	if res == nil {
+		res = rsp["data"]
+	}
+
+	if  res == nil{
+		var msg = rsp["message"]
 		var text = "阿巴阿巴"
-		var code = int(msg["statusCode"].(float64))
+		var code = -1
+		switch msg.(type) {
+		case map[string]interface{}:
+			code = int(msg.(map[string]interface{})["statusCode"].(float64))
+		case string:
+			code = int(rsp["code"].(float64))
+		}
+
 		switch code {
 		case 413:
 			text = fmt.Sprintf("太长了，简短的问哈，脑阔已经打包了")
@@ -161,10 +176,10 @@ func (s *Server) post(convId, message string) *Response {
 		}
 	}
 
-	var response = rsp["response"].(map[string]interface{})
+	var response = res.(map[string]interface{})
 
 	return &Response{
-		MessageID:      response["id"].(string),
+		MessageID:      response["messageId"].(string),
 		Message:        response["response"].(string),
 		ConversationID: response["conversationId"].(string),
 	}
@@ -173,6 +188,7 @@ func (s *Server) post(convId, message string) *Response {
 func (s *Server) Info() map[string]interface{} {
 	return map[string]interface{}{
 		"host":               s.Host,
+		"email":              s.Email,
 		"status":             s.Status,
 		"conversation_count": len(s.ConvMap),
 		"asking":             s.Asking,
@@ -181,6 +197,6 @@ func (s *Server) Info() map[string]interface{} {
 		"workload":           s.Workload(),
 		"code":               s.Code,
 		"off_timestamp":      s.OffTimestamp.Format("2006-01-02 15:04:05"),
-		"asking_timestamp":      s.AskingTimestamp.Format("2006-01-02 15:04:05"),
+		"asking_timestamp":   s.AskingTimestamp.Format("2006-01-02 15:04:05"),
 	}
 }

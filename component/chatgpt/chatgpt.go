@@ -25,14 +25,45 @@ func LoadServers() {
 	}
 }
 
-func AddServer(host string) bool {
+func LoadServersV2() {
+	for _, item := range config.Global.GPTServers {
+		ServerMap[item.Email] = &Server{
+			Host:     item.Host,
+			Email:    item.Email,
+			Password: item.Password,
+			Status:   true,
+			ConvMap:  make(map[string]*Conversation),
+		}
+		var data = make(map[string]interface{})
+		var nodes = make([]map[string]interface{}, 1)
+		nodes[0] = make(map[string]interface{})
+		nodes[0]["email"] = item.Email
+		nodes[0]["password"] = item.Password
+		data["nodes"] = nodes
+		rsp, err := callServer(fmt.Sprintf("%s/add_nodes", item.Host), data)
+		logger.Info(fmt.Sprintf("load chatgpt server err: %+v\nrsp: %v", err, rsp))
+	}
+}
+
+func AddServer(host, email, password string) bool {
 	if _, ex := ServerMap[host]; ex {
 		return false
 	}
-	ServerMap[host] = &Server{
+	var server = &Server{
 		Host:    host,
 		Status:  true,
 		ConvMap: make(map[string]*Conversation),
+	}
+	ServerMap[email] = server
+	if len(email) != 0 {
+		var data = make(map[string]interface{})
+		var nodes = make([]map[string]interface{}, 1)
+		nodes[0] = make(map[string]interface{})
+		nodes[0]["email"] = email
+		nodes[0]["password"] = password
+		data["nodes"] = nodes
+
+		callServer(fmt.Sprintf("%s/restart_nodes", host), data)
 	}
 	logger.Info("add chatgpt server: ", host)
 	return true
@@ -119,10 +150,19 @@ func serverOffline(server *Server) {
 func RestartServer(host string) int {
 	var count = 0
 	for _, s := range ServerMap {
-		if strings.Contains(s.Host, host) && s.Status == false {
+		if (strings.Contains(s.Host, host) || strings.Contains(s.Email, host)) && s.Status == false {
 			s.Status = true
 			count++
 			logger.Info(fmt.Sprintf("%s restart server: %s", host, s.Host))
+			if len(s.Email) != 0 {
+				var data = make(map[string]interface{})
+				var nodes = make([]map[string]interface{}, 1)
+				nodes[0] = make(map[string]interface{})
+				nodes[0]["email"] = s.Email
+				data["nodes"] = nodes
+
+				callServer(fmt.Sprintf("%s/restart_nodes", s.Host), data)
+			}
 		}
 	}
 	return count

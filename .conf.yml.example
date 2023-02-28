@@ -1,3 +1,6 @@
 ApiSalt: 123456
 ChatServerAddrs:
   - http://localhost:8080
+
+GPTServers:
+  - { host: http://localhost:10000, email: 123@outlook.com, password: 456 }
