@@ -10,11 +10,13 @@ import "gopkg.in/yaml.v2"
 var Global struct {
 	ApiSalt         string   `yaml:"ApiSalt"`
 	ChatServerAddrs []string `yaml:"ChatServerAddrs"` // v1
-	GPTServers      []struct {
+	GPTServers []struct {
+		Plus     bool   `yaml:"plus" json:"plus"`
 		Host     string `yaml:"host"`
 		Email    string `yaml:"email" json:"email"`
 		Password string `yaml:"password" json:"password"`
-	} `yaml:"GPTServers"` // v2
+		ApiKey   string `yaml:"apiKey" json:"api_key"`
+	} `yaml:"GPTServers"`                // v2
 	Emails      []string `yaml:"Emails"` // alert emails
 	EmailServer struct {
 		Sender   string `yaml:"sender"`

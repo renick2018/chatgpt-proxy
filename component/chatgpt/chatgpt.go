@@ -27,10 +27,13 @@ func LoadServers() {
 
 func LoadServersV2() {
 	for _, item := range config.Global.GPTServers {
-		ServerMap[item.Email] = &Server{
+		ServerMap[item.Host + item.Email] = &Server{
 			Host:     item.Host,
 			Email:    item.Email,
 			Password: item.Password,
+			ApiKey:   item.ApiKey,
+			IsAPi:    len(item.ApiKey) > 0,
+			IsPlus:   item.Plus,
 			Status:   true,
 			ConvMap:  make(map[string]*Conversation),
 		}
@@ -39,6 +42,7 @@ func LoadServersV2() {
 		nodes[0] = make(map[string]interface{})
 		nodes[0]["email"] = item.Email
 		nodes[0]["password"] = item.Password
+		nodes[0]["apiKey"] = item.ApiKey
 		data["nodes"] = nodes
 		rsp, err := callServer(fmt.Sprintf("%s/add_nodes", item.Host), data)
 		logger.Info(fmt.Sprintf("load chatgpt server err: %+v\nrsp: %v", err, rsp))
@@ -70,9 +74,9 @@ func AddServer(host, email, password string) bool {
 }
 
 // Ask return rsp, nickname
-func Ask(nickname, message string) (*string, string) {
+func Ask(nickname, message string, isVip bool) (*string, string) {
 	// get a freest ai server
-	var server = fetchSever(nickname)
+	var server = fetchSever(nickname, isVip)
 
 	// if no available return nil
 	if server == nil {
@@ -93,10 +97,10 @@ func Ask(nickname, message string) (*string, string) {
 	serverOffline(server)
 
 	// Ask()
-	return Ask(nickname, message)
+	return Ask(nickname, message, isVip)
 }
 
-func fetchSever(nickname string) (s *Server) {
+func fetchSever(nickname string, isVip bool) (s *Server) {
 	locker.Lock()
 	defer func() {
 		if s != nil {
@@ -108,6 +112,11 @@ func fetchSever(nickname string) (s *Server) {
 	var freest *Server
 	var cached *Server
 	for _, v := range ServerMap {
+
+		if isVip && !(v.IsPlus || v.IsAPi) {
+			continue
+		}
+
 		if !v.Status {
 			continue
 		}
@@ -117,6 +126,10 @@ func fetchSever(nickname string) (s *Server) {
 		if freest == nil || freest.Workload() > v.Workload() {
 			freest = v
 		}
+	}
+
+	if isVip && cached == nil && freest == nil {
+		return fetchSever(nickname, false)
 	}
 
 	if cached != nil && (cached.Asking < 5 || time.Now().UnixMilli()-cached.ConvMap[nickname].LastAskTime.UnixMilli() < 300000){

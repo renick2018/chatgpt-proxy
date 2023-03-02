@@ -24,6 +24,9 @@ type Server struct {
 	AskingTimestamp time.Time
 	Email           string
 	Password        string
+	ApiKey          string
+	IsPlus          bool
+	IsAPi           bool
 }
 
 func (s *Server) Workload() float32 {
@@ -149,7 +152,7 @@ func (s *Server) post(convId, message string) *Response {
 		res = rsp["data"]
 	}
 
-	if  res == nil{
+	if res == nil {
 		var msg = rsp["message"]
 		var text = "阿巴阿巴"
 		var code = -1
@@ -178,6 +181,11 @@ func (s *Server) post(convId, message string) *Response {
 
 	var response = res.(map[string]interface{})
 
+	if len(response) == 0 {
+		s.Code = -1
+		return nil
+	}
+
 	return &Response{
 		MessageID:      response["messageId"].(string),
 		Message:        response["response"].(string),
@@ -198,5 +206,7 @@ func (s *Server) Info() map[string]interface{} {
 		"code":               s.Code,
 		"off_timestamp":      s.OffTimestamp.Format("2006-01-02 15:04:05"),
 		"asking_timestamp":   s.AskingTimestamp.Format("2006-01-02 15:04:05"),
+		"plus":               s.IsPlus,
+		"api":                s.IsAPi,
 	}
 }
