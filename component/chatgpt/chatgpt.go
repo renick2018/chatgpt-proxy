@@ -27,7 +27,7 @@ func LoadServers() {
 
 func LoadServersV2() {
 	for _, item := range config.Global.GPTServers {
-		ServerMap[item.Host + item.Email] = &Server{
+		ServerMap[item.Host+item.Email] = &Server{
 			Host:     item.Host,
 			Email:    item.Email,
 			Password: item.Password,
@@ -83,7 +83,7 @@ func Ask(nickname, message string, isVip bool) (*string, string) {
 		logger.Info(fmt.Sprintf("%s no available server", nickname))
 		return nil, nickname
 	}
-	logger.Info(fmt.Sprintf("%s fetch server %v", nickname, server.Host))
+	logger.Info(fmt.Sprintf("%s fetch vip: %v server %v", nickname, server.IsPlus || server.IsAPi, server.Host))
 
 	// ask
 	var rsp, conv = server.Ask(nickname, message)
@@ -107,20 +107,23 @@ func fetchSever(nickname string, isVip bool) (s *Server) {
 			s.NewConv(nickname)
 		}
 		locker.Unlock()
+		if isVip && s == nil {
+			s = fetchSever(nickname, false)
+		}
 	}()
 
 	var freest *Server
 	var cached *Server
 	for _, v := range ServerMap {
 
-		if isVip && !(v.IsPlus || v.IsAPi) {
+		if isVip != (v.IsPlus || v.IsAPi) {
 			continue
 		}
 
 		if !v.Status {
 			continue
 		}
-		if v.ConvMap[nickname] != nil && (cached == nil || v.Workload() < cached.Workload()){
+		if v.ConvMap[nickname] != nil && (cached == nil || v.Workload() < cached.Workload()) {
 			cached = v
 		}
 		if freest == nil || freest.Workload() > v.Workload() {
@@ -128,11 +131,7 @@ func fetchSever(nickname string, isVip bool) (s *Server) {
 		}
 	}
 
-	if isVip && cached == nil && freest == nil {
-		return fetchSever(nickname, false)
-	}
-
-	if cached != nil && (cached.Asking < 5 || time.Now().UnixMilli()-cached.ConvMap[nickname].LastAskTime.UnixMilli() < 300000){
+	if cached != nil && (cached.Asking < 5 || time.Now().UnixMilli()-cached.ConvMap[nickname].LastAskTime.UnixMilli() < 300000) {
 		return cached
 	}
 
@@ -142,21 +141,21 @@ func fetchSever(nickname string, isVip bool) (s *Server) {
 func serverOffline(server *Server) {
 	var text = fmt.Sprintf("chatgpt server %s is offline, check it! %+v", server.Host, time.UnixMilli(alertTimestamp).Format("2006-01-02 15:04:05"))
 	logger.Warning(text)
-	if time.Now().UnixMilli() - alertTimestamp < 60000 {
+	if time.Now().UnixMilli()-alertTimestamp < 60000 {
 		return
 	}
 	alertTimestamp = time.Now().UnixMilli()
 	var alive = 0
-	for _, v := range ServerMap{
+	for _, v := range ServerMap {
 		if v.Status {
 			alive++
 		}
 	}
 	// 企业微信/飞书/邮箱
-	for _, to := range config.Global.Emails{
+	for _, to := range config.Global.Emails {
 		email.Send(to,
 			fmt.Sprintf("ChatGPT %s offline", strings.SplitAfter(server.Host, ":")[2]),
-			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline <br> while <strong> %d </strong> asking <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, server.Asking, alive, len(ServerMap) - alive))
+			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline <br> while <strong> %d </strong> asking <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, server.Asking, alive, len(ServerMap)-alive))
 	}
 }
 
