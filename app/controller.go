@@ -19,7 +19,16 @@ func ask(c *gin.Context) {
 
 	var message = params["message"].(string)
 	var nickname = params["conversationId"].(string)
-	var isVip = params["vip"] != nil && int(params["vip"].(float64)) == 1
+	var isVip = false
+	var vip = params["vip"]
+	if vip != nil {
+		switch vip.(type) {
+		case string:
+			isVip = vip == "1"
+		case float64:
+			isVip = int(params["vip"].(float64)) == 1
+		}
+	}
 	var rsp, conv = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip)
 	var data = make(map[string]string)
 	var msg = ""
