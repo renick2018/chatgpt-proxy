@@ -98,7 +98,9 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 	}
 
 	s.OffTimestamp = time.Now()
-	s.Status = false
+	if !s.IsAPi {
+		s.Status = false
+	}
 	// return nil, false
 	return nil, ""
 }
