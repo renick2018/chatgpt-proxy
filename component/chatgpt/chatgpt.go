@@ -141,6 +141,9 @@ func fetchSever(nickname string, isVip bool) (s *Server) {
 func serverOffline(server *Server) {
 	var text = fmt.Sprintf("chatgpt server %s is offline, check it! %+v", server.Host, time.UnixMilli(alertTimestamp).Format("2006-01-02 15:04:05"))
 	logger.Warning(text)
+	if !server.IsAPi {
+		server.ConvMap = make(map[string]*Conversation)
+	}
 	if time.Now().UnixMilli()-alertTimestamp < 60000 {
 		return
 	}
