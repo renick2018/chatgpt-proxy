@@ -29,7 +29,7 @@ func ask(c *gin.Context) {
 			isVip = int(params["vip"].(float64)) == 1
 		}
 	}
-	var rsp, conv = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip)
+	var rsp, conv = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip, false)
 	var data = make(map[string]string)
 	var msg = ""
 	if rsp != nil {

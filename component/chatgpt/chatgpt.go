@@ -5,6 +5,7 @@ import (
 	"chatgpt-proxy/config"
 	"chatgpt-proxy/lib/logger"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -74,7 +75,7 @@ func AddServer(host, email, password string) bool {
 }
 
 // Ask return rsp, nickname
-func Ask(nickname, message string, isVip bool) (*string, string) {
+func Ask(nickname, message string, isVip, retry bool) (*string, string) {
 	// get a freest ai server
 	var server = fetchSever(nickname, isVip)
 
@@ -96,8 +97,15 @@ func Ask(nickname, message string, isVip bool) (*string, string) {
 	// warning
 	serverOffline(server)
 
+	if isVip && retry {
+		logger.Info(fmt.Sprintf("%s api not available", nickname))
+		return nil, nickname
+	}
+
+	time.Sleep(time.Duration(rand.Intn(3) + 2) * time.Second)
+
 	// Ask()
-	return Ask(nickname, message, isVip)
+	return Ask(nickname, message, isVip, true)
 }
 
 func fetchSever(nickname string, isVip bool) (s *Server) {
