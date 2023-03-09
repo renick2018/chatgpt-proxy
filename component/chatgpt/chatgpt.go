@@ -166,7 +166,7 @@ func serverOffline(server *Server) {
 	for _, to := range config.Global.Emails {
 		email.Send(to,
 			fmt.Sprintf("ChatGPT %s offline", strings.SplitAfter(server.Host, ":")[2]),
-			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline <br> while <strong> %d </strong> asking <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, server.Asking, alive, len(ServerMap)-alive))
+			fmt.Sprintf("ChatGPT server <strong> %s </strong> is offline. code: %d <br> while <strong> %d </strong> asking <strong> %d/%d </strong> asked  <br> online: <strong> %d </strong> offline: <strong> %d </strong> <br> please check it as soon as possible!", server.Host, server.Code, server.Asking, server.successCount, server.count, alive, len(ServerMap)-alive))
 	}
 }
 
