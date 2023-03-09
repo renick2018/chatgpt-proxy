@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	logger.Init("./log.txt")
 	chatgpt.LoadServers()
 	chatgpt.LoadServersV2()
 	// 加载多个APP的路由配置
