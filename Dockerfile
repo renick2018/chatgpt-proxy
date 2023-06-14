@@ -22,6 +22,7 @@ ENV TZ Asia/Shanghai
 
 WORKDIR /app
 COPY --from=builder /app/chatgpt-proxy /app/chatgpt-proxy
+COPY --from=builder /build/.conf.yml /app/.conf.yml
 
 VOLUME /dir
 

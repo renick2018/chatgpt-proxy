@@ -38,7 +38,13 @@ func Error(msg ...string) {
 
 func print(level string, msg ...string)  {
 	_, file, line, _ := runtime.Caller(2)
-	text := fmt.Sprintf("[%s]%s \"chatgpt-proxy%s:%d\" %s", level, time.Now().Format("2006-01-02 15:04:05.999999"), strings.Split(file, "chatgpt-proxy")[1], line, strings.Join(msg, ""))
+	//log.Println(fmt.Sprintf("%s", file))
+	strls := strings.Split(file, "chatgpt-proxy")
+	addr := file
+	if len(strls) > 1 {
+		addr = strls[1]
+	}
+	text := fmt.Sprintf("[%s]%s \"chatgpt-proxy%s:%d\" %s", level, time.Now().Format("2006-01-02 15:04:05.999999"), addr, line, strings.Join(msg, ""))
 	log.Println(text)
-	fmt.Println(text)
+	//fmt.Println(text)
 }

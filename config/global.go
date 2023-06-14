@@ -27,7 +27,8 @@ var Global struct {
 }
 
 func init() {
-	fileData, err := os.ReadFile("./.conf.yml")
+	path, _ := os.Getwd()
+	fileData, err := os.ReadFile(fmt.Sprintf("%s/.conf.yml", path))
 	if err != nil {
 		logger.Error(fmt.Sprintf("load conf file error: %+v", err))
 		return
