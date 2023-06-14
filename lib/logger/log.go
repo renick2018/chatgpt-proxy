@@ -46,5 +46,5 @@ func print(level string, msg ...string)  {
 	}
 	text := fmt.Sprintf("[%s]%s \"chatgpt-proxy%s:%d\" %s", level, time.Now().Format("2006-01-02 15:04:05.999999"), addr, line, strings.Join(msg, ""))
 	log.Println(text)
-	//fmt.Println(text)
+	fmt.Println(text)
 }
