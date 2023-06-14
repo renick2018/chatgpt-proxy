@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  chatgpt-api-server:
+    build:
+      context: chatgpt-api-server
+      dockerfile: Dockerfile
+    container_name: chatgpt-api-server
+    restart: always
+    ports:
+      - 10000:10000
+    logging:
+      options:
+        max-size: "100m"
+  chatgpt-proxy:
+    build:
+      context: chatgpt-proxy
+      dockerfile: Dockerfile
+    container_name: chatgpt-proxy
+    restart: always
+    ports:
+      - 8088:8088
+    depends_on:
+      - chatgpt-api-server
+    logging:
+      options:
+        max-size: "100m"
