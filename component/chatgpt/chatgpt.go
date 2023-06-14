@@ -15,7 +15,7 @@ var locker sync.Mutex
 var ServerMap = make(map[string]*Server)
 var alertTimestamp int64 = 0
 
-func LoadServers() {
+func LoadServers() int {
 	for _, host := range config.Global.ChatServerAddrs {
 		ServerMap[host] = &Server{
 			Host:    host,
@@ -24,9 +24,11 @@ func LoadServers() {
 		}
 		logger.Info("load chatgpt server: ", host)
 	}
+	return len(ServerMap)
 }
 
-func LoadServersV2() {
+func LoadServersV2() int{
+	var count = 0
 	for _, item := range config.Global.GPTServers {
 		ServerMap[item.Host+item.Email] = &Server{
 			Host:     item.Host,
@@ -47,7 +49,11 @@ func LoadServersV2() {
 		data["nodes"] = nodes
 		rsp, err := callServer(fmt.Sprintf("%s/add_nodes", item.Host), data)
 		logger.Info(fmt.Sprintf("load chatgpt server err: %+v\nrsp: %v", err, rsp))
+		if err == nil {
+			count++
+		}
 	}
+	return count
 }
 
 func AddServer(host, email, password string) bool {
