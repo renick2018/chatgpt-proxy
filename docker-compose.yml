@@ -8,7 +8,10 @@ services:
     container_name: chatgpt-api-server
     restart: always
     ports:
-      - 10000:10000
+      - "10000:10000"
+    volumes:
+      - ./.env:/usr/src/app/.env
+      - ./log/api:/usr/src/app/log
     logging:
       options:
         max-size: "100m"
@@ -19,7 +22,10 @@ services:
     container_name: chatgpt-proxy
     restart: always
     ports:
-      - 8088:8088
+      - "8088:8088"
+    volumes:
+      - ./.conf.yml:/app/.conf.yml
+      - ./log/proxy/log.txt:/app/log.txt
     depends_on:
       - chatgpt-api-server
     logging:

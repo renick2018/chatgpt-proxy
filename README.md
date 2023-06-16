@@ -41,11 +41,12 @@ chatgpt-api-server提供http接口，但web方式没有对同时多个请求进�
 ### 使用docker compose
 ```shell
 cd app # 到你想存放项目的目录
+mkdir log && mkdir log/proxy && mkdir log/api
 git clone https://github.com/renick2018/chatgpt-api-server.git
 git clone https://github.com/renick2018/chatgpt-proxy.git
 # 修改配置文件，参考example
-vim chatgpt-api-server/.env
-vim chatgpt-proxy/.conf.yml
+vim .env
+vim .conf.yml
 cp chatgpt-proxy/deploy.sh .
 chmod +x deploy.sh
 sh deploy.sh
