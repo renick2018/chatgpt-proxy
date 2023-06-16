@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"runtime"
@@ -9,8 +10,13 @@ import (
 	"time"
 )
 
-func Init(path string) {
-	logFile, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+func init() {
+	dir := "./log"
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err)  {
+		os.Mkdir(dir, fs.ModePerm)
+	}
+	logFile, err := os.OpenFile(dir + "/log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		//fmt.Println("open log file failed, err:", err)
 		return

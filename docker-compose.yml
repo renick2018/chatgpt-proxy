@@ -25,7 +25,7 @@ services:
       - "8088:8088"
     volumes:
       - ./.conf.yml:/app/.conf.yml
-      - ./log/proxy/log.txt:/app/log.txt
+      - ./log/proxy:/app/log
     depends_on:
       - chatgpt-api-server
     logging:

@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-	logger.Init("./log.txt")
 	var nodeCount = chatgpt.LoadServers()
 	nodeCount += chatgpt.LoadServersV2()
 	if nodeCount == 0 {
