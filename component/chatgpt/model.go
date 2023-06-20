@@ -31,3 +31,11 @@ type Function struct {
 		Required   []string    `json:"required"`
 	} `json:"parameters"`
 }
+
+type Question struct {
+	ConvId        string
+	Message       string
+	SystemMessage string
+	FunctionCall  string
+	Functions     []Function
+}

@@ -68,7 +68,9 @@ func (s *Server) IsVIP() bool {
 	return s.IsAPi || s.IsPlus
 }
 
-func (s *Server) Ask(convId, message, functionCall string, functions []Function) (*string, string, *FunctionCall) {
+func (s *Server) Ask(question *Question) (*string, string, *FunctionCall) {
+	convId := question.ConvId
+	message := question.Message
 	s.updateCount(true)
 	if !s.IsAPi {
 		s.askLock.Lock()
@@ -87,7 +89,7 @@ func (s *Server) Ask(convId, message, functionCall string, functions []Function)
 	logger.Info(fmt.Sprintf("%s %s try ask %d letter: %s", s.Host, convId, len([]rune(message)), message))
 
 	// post for rsp
-	var rsp = s.post(convId, message, functionCall, functions)
+	var rsp = s.post(question)
 
 	logger.Info(fmt.Sprintf("%s %s try ask %s\nresponse: %+v", s.Host, convId, message, rsp))
 
@@ -113,21 +115,24 @@ func (s *Server) Ask(convId, message, functionCall string, functions []Function)
 	return nil, "", nil
 }
 
-func (s *Server) post(convId, message, functionCall string, functions []Function) *Response {
-
+func (s *Server) post(question *Question) *Response {
+	convId := question.ConvId
 	url := s.Host + "/ask" // POST 请求的目标 URL
 	data := make(map[string]interface{})
-	data["message"] = message
+	data["message"] = question.Message
 	data["node"] = s.Email
-	if s.ConvMap[convId] != nil {
+	if s.ConvMap[question.ConvId] != nil {
 		data["messageId"] = s.ConvMap[convId].LastMessageID
 		data["conversationId"] = s.ConvMap[convId].ID
 	} else {
 		data["messageId"] = ""
 		data["conversationId"] = ""
 	}
-	data["function_call"] = functionCall
-	data["functions"] = functions
+	if len(question.SystemMessage) > 0 {
+		data["systemMessage"] = question.SystemMessage
+	}
+	data["function_call"] = question.FunctionCall
+	data["functions"] = question.Functions
 	bs, _ := json.Marshal(data) // POST 请求的数据
 
 	logger.Info(fmt.Sprintf("%s request: %s", s.Host, string(bs)))

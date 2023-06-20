@@ -22,12 +22,16 @@ func ask(c *gin.Context) {
 	var nickname = params["conversationId"].(string)
 	var funcCall = "auto"
 	var functions []chatgpt.Function
+	var systemMessage string
 	if params["functions"] != nil {
 		bs, _ := json.Marshal(params["functions"])
 		json.Unmarshal(bs, &functions)
 	}
 	if params["function_call"] != nil {
 		funcCall = params["function_call"].(string)
+	}
+	if params["system_message"] != nil {
+		systemMessage = params["systemMessage"].(string)
 	}
 	var isVip = false
 	var vip = params["vip"]
@@ -39,7 +43,15 @@ func ask(c *gin.Context) {
 			isVip = int(params["vip"].(float64)) == 1
 		}
 	}
-	var rsp, conv, call = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip, false, funcCall, functions)
+	//var rsp, conv, call = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip, false, funcCall, functions)
+	var question = chatgpt.Question{
+		ConvId:        nickname,
+		Message:       strings.ReplaceAll(message, "\n", ""),
+		SystemMessage: systemMessage,
+		FunctionCall:  funcCall,
+		Functions:     functions,
+	}
+	var rsp, conv, call = chatgpt.Ask(&question, isVip, false)
 	var data = make(map[string]interface{})
 	var msg = ""
 	if rsp != nil {

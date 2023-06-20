@@ -81,8 +81,9 @@ func AddServer(host, email, password string) bool {
 }
 
 // Ask return rsp, nickname
-func Ask(nickname, message string, isVip, retry bool, functionCall string, functions []Function) (*string, string, *FunctionCall) {
+func Ask(question *Question, isVip, retry bool) (*string, string, *FunctionCall) {
 	// get a freest ai server
+	var nickname = question.ConvId
 	var server = fetchSever(nickname, isVip)
 
 	// if no available return nil
@@ -93,7 +94,7 @@ func Ask(nickname, message string, isVip, retry bool, functionCall string, funct
 	logger.Info(fmt.Sprintf("%s fetch vip: %v server %v", nickname, server.IsPlus || server.IsAPi, server.Host))
 
 	// ask
-	var rsp, conv, call = server.Ask(nickname, message, functionCall, functions)
+	var rsp, conv, call = server.Ask(question)
 
 	// if ok return rsp
 	if rsp != nil {
@@ -111,7 +112,7 @@ func Ask(nickname, message string, isVip, retry bool, functionCall string, funct
 	time.Sleep(time.Duration(rand.Intn(3) + 2) * time.Second)
 
 	// Ask()
-	return Ask(nickname, message, isVip, true ,functionCall, functions)
+	return Ask(question, isVip, true)
 }
 
 func fetchSever(nickname string, isVip bool) (s *Server) {
