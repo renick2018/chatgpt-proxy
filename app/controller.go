@@ -31,7 +31,7 @@ func ask(c *gin.Context) {
 		funcCall = params["function_call"].(string)
 	}
 	if params["system_message"] != nil {
-		systemMessage = params["systemMessage"].(string)
+		systemMessage = params["system_message"].(string)
 	}
 	var isVip = false
 	var vip = params["vip"]
