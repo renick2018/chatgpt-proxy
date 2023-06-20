@@ -68,7 +68,7 @@ func (s *Server) IsVIP() bool {
 	return s.IsAPi || s.IsPlus
 }
 
-func (s *Server) Ask(convId, message string) (*string, string) {
+func (s *Server) Ask(convId, message, functionCall string, functions []Function) (*string, string, *FunctionCall) {
 	s.updateCount(true)
 	if !s.IsAPi {
 		s.askLock.Lock()
@@ -81,13 +81,13 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 	}()
 
 	if !s.Status {
-		return nil, convId
+		return nil, convId, nil
 	}
 	s.AskingTimestamp = time.Now()
 	logger.Info(fmt.Sprintf("%s %s try ask %d letter: %s", s.Host, convId, len([]rune(message)), message))
 
 	// post for rsp
-	var rsp = s.post(convId, message)
+	var rsp = s.post(convId, message, functionCall, functions)
 
 	logger.Info(fmt.Sprintf("%s %s try ask %s\nresponse: %+v", s.Host, convId, message, rsp))
 
@@ -102,7 +102,7 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 		s.ConvMap[convAddr].ID = rsp.ConversationID
 		s.ConvMap[convAddr].LastMessageID = rsp.MessageID
 		s.ConvMap[convAddr].LastAskTime = time.Now()
-		return &rsp.Message, convAddr
+		return &rsp.Message, convAddr, &rsp.FunctionCall
 	}
 
 	s.OffTimestamp = time.Now()
@@ -110,10 +110,10 @@ func (s *Server) Ask(convId, message string) (*string, string) {
 		s.Status = false
 	}
 	// return nil, false
-	return nil, ""
+	return nil, "", nil
 }
 
-func (s *Server) post(convId, message string) *Response {
+func (s *Server) post(convId, message, functionCall string, functions []Function) *Response {
 
 	url := s.Host + "/ask" // POST 请求的目标 URL
 	data := make(map[string]interface{})
@@ -126,6 +126,8 @@ func (s *Server) post(convId, message string) *Response {
 		data["messageId"] = ""
 		data["conversationId"] = ""
 	}
+	data["function_call"] = functionCall
+	data["functions"] = functions
 	bs, _ := json.Marshal(data) // POST 请求的数据
 
 	logger.Info(fmt.Sprintf("%s request: %s", s.Host, string(bs)))
@@ -196,10 +198,17 @@ func (s *Server) post(convId, message string) *Response {
 		return nil
 	}
 
+	var funcCall FunctionCall
+	var call = response["function_call"]
+	if call != nil {
+		bs, _ = json.Marshal(call)
+		json.Unmarshal(bs, &funcCall)
+	}
 	return &Response{
 		MessageID:      response["messageId"].(string),
 		Message:        response["response"].(string),
 		ConversationID: response["conversationId"].(string),
+		FunctionCall:   funcCall,
 	}
 }
 

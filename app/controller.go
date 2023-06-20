@@ -3,6 +3,7 @@ package app
 import (
 	"chatgpt-proxy/component"
 	"chatgpt-proxy/component/chatgpt"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -19,6 +20,15 @@ func ask(c *gin.Context) {
 
 	var message = params["message"].(string)
 	var nickname = params["conversationId"].(string)
+	var funcCall = "auto"
+	var functions []chatgpt.Function
+	if params["functions"] != nil {
+		bs, _ := json.Marshal(params["functions"])
+		json.Unmarshal(bs, &functions)
+	}
+	if params["function_call"] != nil {
+		funcCall = params["function_call"].(string)
+	}
 	var isVip = false
 	var vip = params["vip"]
 	if vip != nil {
@@ -29,14 +39,15 @@ func ask(c *gin.Context) {
 			isVip = int(params["vip"].(float64)) == 1
 		}
 	}
-	var rsp, conv = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip, false)
-	var data = make(map[string]string)
+	var rsp, conv, call = chatgpt.Ask(nickname, strings.ReplaceAll(message, "\n", ""), isVip, false, funcCall, functions)
+	var data = make(map[string]interface{})
 	var msg = ""
 	if rsp != nil {
 		data["response"] = *rsp
 		data["conversationId"] = conv
 		data["text"] = *rsp
 		data["ParentMessageId"] = ""
+		data["function_call"] = *call
 	} else {
 		msg = "no available server"
 	}
