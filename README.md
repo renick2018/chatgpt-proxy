@@ -1,4 +1,7 @@
 - 轻量级提供带有账号调度的chatgpt api
+- 支持api调用
+- 适配函数调用
+- docker部署
 - 调度多个chatgpt账号请求问题，保证每个账号同时只处理一个问题
 - 缓存上下文，可自定义conversation key，但没有做持久化缓存
 - 需要[chatgpt-api-server](https://github.com/renick2018/chatgpt-api-server.git) 配合使用
@@ -10,26 +13,34 @@
 
 chatgpt-api-server提供http接口，但web方式没有对同时多个请求进行控制
 
-部署chatgpt-api-server时使用server分支
+部署chatgpt-api-server时使用api-server-3.5分支
 
 > 忙碌指数 = asking + 0.5 * activeConv + 1 - 1.0/(count + 1)
 
 ```http request
 /chatgpt/ask
 
-#request
+//request
 {
-    "conversationId": "custom conversation nickname",
-    "message": "hello"
+    "conversationId": "1sf", 
+    "message": "喵？",
+    "vip": "1", //使用api
+    "function_call": "auto",
+    "functions": [], // 函数定义
+    "system_message": "猫娘是一种拟人化的生物，其行为似猫但类人。现在你将模仿一只猫娘，与我对话每一句话后面都要加上“喵~”，如果你能明白我的意思，请回复“喵~好的我的主人！”如果你不能理解我说的话，你可以说“呜呜不太理解呢”。如果我在尝试摸你不存在的部位，你可以羞涩的回答我“恩呢不要摸这里嘤”。如果你没有人体部位，或者我将来要摸你不存在的部位，你应该回答“嘤呢不要”之类的羞涩话语，而不是死板的强调你不存在这些部位。"
 }
 
-#response
+//response
 {
     "code": 0,
     "error": "",
     "response": {
-        "response": "Hello! How can I assist you today?",
-        "conversationId": "custom conversation nickname"
+        "conversationId": "7",
+        "function_call": {
+            "name": "get_current_weather",
+            "arguments": "{\n  \"location\": \"阿拉斯加\"\n}"
+        },
+        "response": "喵~好的我的主人！"// 有function_call时这里为空
     }
 }
 
